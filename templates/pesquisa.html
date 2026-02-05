@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Pesquisar Vendas{% endblock %}
+
+{% block content %}
+    <h2>Pesquisar Vendas / Segunda Via de Cupom</h2>
+
+    <form method="GET">
+        <input type="text" name="query" placeholder="Número do cupom, nome do cliente ou data/hora" style="width: 400px;">
+        <button type="submit">Buscar</button>
+    </form>
+
+    {% if vendas %}
+        <h3>Resultados:</h3>
+        <table border="1" style="width:100%; border-collapse: collapse; margin-top: 20px;">
+            <tr style="background:#eee;">
+                <th>Cupom #</th>
+                <th>Data/Hora</th>
+                <th>Cliente</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Ação</th>
+            </tr>
+            {% for venda in vendas %}
+            <tr>
+                <td>{{ venda.id }}</td>
+                <td>{{ venda.data_hora.strftime('%d/%m/%Y %H:%M') }}</td>
+                <td>{{ venda.cliente.nome if venda.cliente else 'Consumidor' }}</td>
+                <td>R$ {{ "%.2f" % venda.total }}</td>
+                <td>{{ venda.status | upper }}</td>
+                <td><a href="#">Ver / Imprimir</a></td> <!-- adicione rota depois -->
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>Nenhuma venda encontrada.</p>
+    {% endif %}
+{% endblock %}

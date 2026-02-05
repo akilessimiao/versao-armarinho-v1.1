@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Vendas{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+            color: #212529;
+        }
+        header {
+            background: #343a40;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        nav {
+            background: #e9ecef;
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #dee2e6;
+        }
+        nav a {
+            margin: 0 15px;
+            color: #343a40;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        nav a:hover {
+            color: #007bff;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 20px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.08);
+        }
+        .flash {
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error   { background: #f8d7da; color: #721c24; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        h2, h3, h4 {
+            color: #343a40;
+        }
+        a {
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Sistema de Vendas - {{ config.nome_empresa or 'Empresa' }}</h1>
+    </header>
+
+<nav>
+    {% if session.user_id %}
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        
+        {% if session.role == 'admin' %}
+            <a href="{{ url_for('ajustar_api') }}">Configurar API</a>
+            <a href="{{ url_for('backup') }}">Backup</a>
+        {% else %}
+            <!-- Apenas para operador -->
+            <a href="#">Consulta Produtos</a>
+            <a href="#">Emitir Cupom</a>
+        {% endif %}
+        
+        <a href="{{ url_for('pesquisar_venda') }}">Pesquisar Vendas</a>
+        
+        <!-- Botão Sair visível em TODAS as telas logadas -->
+        <a href="{{ url_for('logout') }}" style="color: #dc3545; font-weight: bold;">Sair</a>
+    {% endif %}
+</nav>
+
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ 'success' if category == 'message' else 'error' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}Ajustar API de Pagamentos{% endblock %}
+
+{% block content %}
+    <h2>Configurar Chaves API (Admin)</h2>
+
+    <form method="POST">
+        <label>Mercado Pago Access Token:</label><br>
+        <input type="text" name="token" value="{{ config.api_pagamento or '' }}" style="width: 400px;"><br><br>
+
+        <label>Outro campo (ex: chave PIX alternativa):</label><br>
+        <input type="text" name="outra_chave"><br><br>
+
+        <button type="submit">Salvar Configurações</button>
+    </form>
+
+    <p><small>Salve as chaves com cuidado. Elas serão usadas para gerar PIX e pagamentos com cartão.</small></p>
+{% endblock %}

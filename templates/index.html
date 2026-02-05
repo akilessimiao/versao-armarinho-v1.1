@@ -1,0 +1,390 @@
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
+from flask_sqlalchemy import SQLAlchemy
+import bcrypt
+from datetime import datetime
+import os
+
+app = Flask(__name__)
+app.secret_key = os.urandom(24)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///vendas.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
+# ===== MODELOS =====
+class Usuario(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(100), nullable=False)
+    login = db.Column(db.String(50), unique=True, nullable=False)
+    senha_hash = db.Column(db.String(200), nullable=False)
+    perfil = db.Column(db.String(20), nullable=False)  # 'admin' ou 'operador'
+    ativo = db.Column(db.Boolean, default=True)
+
+    def set_senha(self, senha):
+        self.senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    
+    def verificar_senha(self, senha):
+        return bcrypt.checkpw(senha.encode('utf-8'), self.senha_hash.encode('utf-8'))
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'nome': self.nome,
+            'login': self.login,
+            'perfil': self.perfil
+        }
+
+class Produto(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    codigo = db.Column(db.String(50), unique=True)
+    descricao = db.Column(db.String(200), nullable=False)
+    preco_custo = db.Column(db.Float)
+    preco_venda = db.Column(db.Float, nullable=False)
+    estoque = db.Column(db.Integer, default=0)
+    ativo = db.Column(db.Boolean, default=True)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'codigo': self.codigo,
+            'descricao': self.descricao,
+            'preco_venda': self.preco_venda,
+            'estoque': self.estoque
+        }
+
+class Cliente(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(150), nullable=False)
+    tipo = db.Column(db.String(10), nullable=False)  # 'cpf' ou 'cnpj'
+    documento = db.Column(db.String(20), unique=True, nullable=False)
+    telefone = db.Column(db.String(20))
+    email = db.Column(db.String(100))
+    endereco = db.Column(db.String(200))
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'nome': self.nome,
+            'tipo': self.tipo,
+            'documento': self.documento,
+            'telefone': self.telefone,
+            'email': self.email,
+            'endereco': self.endereco
+        }
+
+class Venda(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    data = db.Column(db.DateTime, default=datetime.now)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    cliente_id = db.Column(db.Integer, db.ForeignKey('cliente.id'))
+    total = db.Column(db.Float, nullable=False)
+    tipo_cupom = db.Column(db.String(20), default='nao_fiscal')
+    cancelada = db.Column(db.Boolean, default=False)
+    senha_admin_cancelamento = db.Column(db.String(200))
+
+class MovimentacaoCaixa(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    data = db.Column(db.DateTime, default=datetime.now)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    tipo = db.Column(db.String(20), nullable=False)  # 'sangria' ou 'suprimento'
+    valor = db.Column(db.Float, nullable=False)
+    especificacao = db.Column(db.String(200))
+    senha_admin = db.Column(db.String(200), nullable=False)
+
+# ===== ROTAS =====
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        data = request.get_json() if request.is_json else request.form
+        login = data.get('login')
+        senha = data.get('senha')
+        
+        usuario = Usuario.query.filter_by(login=login, ativo=True).first()
+        
+        if usuario and usuario.verificar_senha(senha):
+            session['user_id'] = usuario.id
+            session['perfil'] = usuario.perfil
+            session['nome'] = usuario.nome
+            
+            if request.is_json:
+                return jsonify({'success': True, 'redirect': '/vendas' if usuario.perfil == 'operador' else '/admin'})
+            return redirect('/vendas' if usuario.perfil == 'operador' else '/admin')
+        
+        if request.is_json:
+            return jsonify({'success': False, 'error': 'Usuário ou senha inválidos'}), 401
+        flash('Usuário ou senha inválidos!', 'error')
+        return redirect('/login')
+    
+    return '''
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Login - Sistema de Vendas</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+            body { background: linear-gradient(135deg, #1a2a6c, #2c3e50); height: 100vh; display: flex; align-items: center; justify-content: center; }
+            .container { background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); padding: 40px; width: 100%; max-width: 400px; text-align: center; }
+            h1 { color: #2c3e50; margin-bottom: 30px; font-size: 28px; }
+            .input-group { margin-bottom: 20px; text-align: left; }
+            label { display: block; margin-bottom: 8px; color: #7f8c8d; font-weight: 500; }
+            input { width: 100%; padding: 14px; border: 2px solid #ecf0f1; border-radius: 8px; font-size: 16px; transition: border-color 0.3s; }
+            input:focus { border-color: #3498db; outline: none; }
+            button { background: #3498db; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-size: 18px; font-weight: 600; cursor: pointer; transition: background 0.3s; }
+            button:hover { background: #2980b9; }
+            .error { color: #e74c3c; background: #fadbd8; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: none; }
+            .footer { margin-top: 30px; color: #7f8c8d; font-size: 14px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🔐 Sistema de Vendas</h1>
+            <div id="error" class="error"></div>
+            
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="login">Usuário</label>
+                    <input type="text" id="login" name="login" required autofocus>
+                </div>
+                
+                <div class="input-group">
+                    <label for="senha">Senha</label>
+                    <input type="password" id="senha" name="senha" required>
+                </div>
+                
+                <button type="submit">Entrar</button>
+            </form>
+            
+            <div class="footer">
+                <p>Admin: admin / java1814</p>
+                <p>Operador: operador / operador123</p>
+            </div>
+        </div>
+
+        <script>
+            document.getElementById('login-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const login = document.getElementById('login').value;
+                const senha = document.getElementById('senha').value;
+                const errorDiv = document.getElementById('error');
+                
+                try {
+                    const response = await fetch('/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ login, senha })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        window.location.href = result.redirect;
+                    } else {
+                        errorDiv.textContent = result.error || 'Usuário ou senha inválidos!';
+                        errorDiv.style.display = 'block';
+                    }
+                } catch (err) {
+                    errorDiv.textContent = 'Erro de conexão com o servidor';
+                    errorDiv.style.display = 'block';
+                }
+            });
+        </script>
+    </body>
+    </html>
+    '''
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/login')
+
+@app.route('/vendas')
+def tela_vendas():
+    if 'user_id' not in session or session.get('perfil') != 'operador':
+        return redirect('/login')
+    
+    produtos = Produto.query.filter_by(ativo=True).all()
+    return render_template('vendas.html', 
+                         produtos=[p.to_dict() for p in produtos],
+                         operador=session['nome'])
+
+@app.route('/admin')
+def admin():
+    if 'user_id' not in session or session.get('perfil') != 'admin':
+        return redirect('/login')
+    
+    return '''
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Admin - Sistema de Vendas</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+            body { background: #f5f7fa; color: #333; }
+            .header { background: #2c3e50; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+            .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+            .card { background: white; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); padding: 25px; text-align: center; transition: transform 0.3s; cursor: pointer; }
+            .card:hover { transform: translateY(-5px); }
+            .card-icon { font-size: 40px; margin-bottom: 15px; }
+            .card-title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+            .card-desc { color: #7f8c8d; font-size: 14px; }
+            .btn { padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: #3498db; color: white; }
+            .btn:hover { background: #2980b9; }
+            .btn-block { display: block; width: 100%; margin-top: 15px; }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <div class="logo">👑 Admin - Armarinho</div>
+            <div class="user-info">
+                <div class="name">Administrador</div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="dashboard">
+                <div class="card" onclick="alert('Funcionalidade em desenvolvimento: Cadastro de Produtos')">
+                    <div class="card-icon">📦</div>
+                    <div class="card-title">Produtos</div>
+                    <div class="card-desc">Cadastrar, editar e excluir</div>
+                    <button class="btn btn-block">Gerenciar</button>
+                </div>
+                <div class="card" onclick="alert('Funcionalidade em desenvolvimento: Cadastro de Clientes CPF/CNPJ')">
+                    <div class="card-icon">👥</div>
+                    <div class="card-title">Clientes</div>
+                    <div class="card-desc">CPF e CNPJ</div>
+                    <button class="btn btn-block">Gerenciar</button>
+                </div>
+                <div class="card" onclick="alert('Funcionalidade em desenvolvimento: APIs de Pagamento')">
+                    <div class="card-icon">💳</div>
+                    <div class="card-title">APIs de Pagamento</div>
+                    <div class="card-desc">Contas digitais e PIX</div>
+                    <button class="btn btn-block">Configurar</button>
+                </div>
+                <div class="card" onclick="window.location.href='/logout'">
+                    <div class="card-icon">🚪</div>
+                    <div class="card-title">Sair</div>
+                    <div class="card-desc">Encerrar sessão</div>
+                    <button class="btn btn-block" style="background:#e74c3c">Sair</button>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    '''
+
+@app.route('/api/produtos/buscar')
+def buscar_produto():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Não autenticado'}), 401
+    
+    termo = request.args.get('q', '').strip()
+    if not termo:
+        return jsonify([])
+    
+    produtos = Produto.query.filter(
+        Produto.ativo == True,
+        (Produto.codigo.ilike(f'%{termo}%')) | (Produto.descricao.ilike(f'%{termo}%'))
+    ).limit(10).all()
+    
+    return jsonify([p.to_dict() for p in produtos])
+
+@app.route('/api/vendas', methods=['POST'])
+def registrar_venda():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Não autenticado'}), 401
+    
+    dados = request.get_json()
+    venda = Venda(
+        usuario_id=session['user_id'],
+        cliente_id=dados.get('cliente_id'),
+        total=dados['total'],
+        tipo_cupom=dados.get('tipo_cupom', 'nao_fiscal')
+    )
+    
+    db.session.add(venda)
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'venda_id': venda.id,
+        'data': venda.data.strftime('%d/%m/%Y %H:%M:%S'),
+        'total': venda.total
+    })
+
+@app.route('/api/caixa/sangria', methods=['POST'])
+def sangria():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Não autenticado'}), 401
+    
+    dados = request.get_json()
+    senha_admin = dados.get('senha_admin', '')
+    
+    # Verificar senha de administrador (java1814)
+    admin = Usuario.query.filter_by(perfil='admin', ativo=True).first()
+    if not admin or not admin.verificar_senha(senha_admin):
+        return jsonify({'error': 'Senha de administrador inválida'}), 403
+    
+    movimentacao = MovimentacaoCaixa(
+        usuario_id=session['user_id'],
+        tipo='sangria',
+        valor=float(dados['valor']),
+        especificacao=dados.get('especificacao', ''),
+        senha_admin=senha_admin
+    )
+    
+    db.session.add(movimentacao)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'id': movimentacao.id})
+
+@app.route('/')
+def index():
+    if 'user_id' in session:
+        return redirect('/vendas' if session['perfil'] == 'operador' else '/admin')
+    return redirect('/login')
+
+# ===== INICIALIZAÇÃO =====
+def criar_usuarios_padrao():
+    with app.app_context():
+        db.create_all()
+        if Usuario.query.count() == 0:
+            # Admin com senha java1814
+            admin = Usuario(nome='Administrador', login='admin', perfil='admin')
+            admin.set_senha('java1814')
+            db.session.add(admin)
+            
+            # Operador padrão
+            operador = Usuario(nome='Operador', login='operador', perfil='operador')
+            operador.set_senha('operador123')
+            db.session.add(operador)
+            
+            # Produtos de exemplo
+            produtos_exemplo = [
+                Produto(codigo='001', descricao='Botão de Madeira', preco_venda=5.0, estoque=120),
+                Produto(codigo='002', descricao='Linha de Algodão', preco_venda=8.5, estoque=85),
+                Produto(codigo='003', descricao='Agulha de Costura', preco_venda=3.2, estoque=200),
+                Produto(codigo='004', descricao='Fita Métrica', preco_venda=12.0, estoque=50),
+                Produto(codigo='005', descricao='Tesoura Profissional', preco_venda=25.0, estoque=30)
+            ]
+            for p in produtos_exemplo:
+                db.session.add(p)
+            
+            db.session.commit()
+            print("✓ Banco de dados inicializado com sucesso!")
+            print("   Admin: admin / java1814")
+            print("   Operador: operador / operador123")
+
+if __name__ == '__main__':
+    criar_usuarios_padrao()
+    print("\n🚀 Sistema iniciado com sucesso!")
+    print("   Acesse em: http://localhost:5000")
+    print("   Credenciais:")
+    print("     • Admin: admin / java1814")
+    print("     • Operador: operador / operador123\n")
+    app.run(debug=True, host='0.0.0.0', port=5000)

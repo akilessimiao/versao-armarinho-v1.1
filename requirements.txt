@@ -1,0 +1,32 @@
+# Framework web principal
+Flask==3.0.3
+
+# Banco de dados (SQLite + ORM)
+Flask-SQLAlchemy==3.1.1
+SQLAlchemy==2.0.35
+
+# Segurança (hash de senhas)
+Werkzeug==3.0.4
+
+# Geração de PDF para cupons
+reportlab==4.2.5
+
+# Envio de mensagens WhatsApp (opção mais simples e popular)
+twilio==9.3.3
+# Alternativa gratuita (se quiser usar API oficial do WhatsApp via provedor): pywhatkit==5.4 (mas menos confiável)
+
+# Integração com Mercado Pago (PIX, cartão, etc.)
+mercadopago==2.0.6
+
+# Backup e agendamento (opcional, mas recomendado para backups automáticos)
+schedule==1.2.2
+
+# Manipulação de JSON e datas (já vem no Python, mas útil para debug)
+python-dateutil==2.9.0.post0
+
+# Para exportar relatórios em CSV/Excel (muito útil para leitura Z e relatórios)
+pandas==2.2.3
+openpyxl==3.1.5
+
+# Para testes e desenvolvimento (opcional, mas bom ter)
+pytest==8.3.3

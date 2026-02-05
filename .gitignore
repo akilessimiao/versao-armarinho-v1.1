@@ -1,0 +1,26 @@
+# Ambientes virtuais
+venv/
+.venv/
+env/
+ENV/
+
+# Banco de dados SQLite
+*.db
+*.sqlite3
+sistema_vendas.db
+
+# Backups e arquivos temporários
+*.bak
+*.tmp
+backup.json
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Outros comuns
+.DS_Store
+Thumbs.db
+*.log

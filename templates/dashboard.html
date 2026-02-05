@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+    <h2>Bem-vindo, {{ session.role | capitalize }}!</h2>
+
+    <h3>Registrar Nova Venda (em construção)</h3>
+    <p>Funcionalidade de carrinho e finalização de venda será adicionada em breve.</p>
+
+    {% if session.role == 'admin' %}
+        <p><strong>Você tem acesso administrativo.</strong></p>
+    {% endif %}
+
+    <hr>
+    <p>Próximos passos:</p>
+    <ul>
+        <li>Implementar cadastro de produtos e clientes</li>
+        <li>Finalizar venda + gerar cupom</li>
+        <li>Integração WhatsApp e PIX</li>
+    </ul>
+{% endblock %}
