@@ -1,122 +1,97 @@
+# Versão Armarinho v1.1 - Sistema de Vendas
 
-✨ Funcionalidades Implementadas
-📤 1. Backup Automático
-✅ Backup diário automático às 23:00
-✅ Backup manual a qualquer momento
-✅ Histórico de backups locais
-✅ Restauração de backups
-✅ Configurações personalizáveis (frequência, horário, limite)
-📊 2. Leitura Z (Relatório Fiscal)
-✅ Relatório completo do caixa por período
-✅ Total de vendas e valores
-✅ Total de sangrias
-✅ Resultado líquido
-✅ Top 10 produtos mais vendidos
-✅ Impressão do relatório
-✅ Exportação para PDF (via impressora)
-🔐 3. Proteção por Senha
-✅ Exclusão de clientes requer senha de administrador (java1814)
-✅ Exclusão de produtos requer senha de administrador
-✅ Modal elegante para solicitar senha
-✅ Validação em tempo real
-📄 4. Cupom Fiscal para Impressão
-✅ Cupom gerado automaticamente após venda
-✅ Layout profissional (80mm - padrão térmica)
-✅ Dados da empresa configuráveis
-✅ Informações do cliente (se selecionado)
-✅ Lista de itens com quantidades e valores
-✅ Total da venda
-✅ Botão para imprimir
-✅ Botão para reimprimir
-✅ Otimizado para impressão (layout limpo)
-🎯 Como Usar
-Backup Automático:
-Sistema já está configurado para backup diário às 23:00
-Para backup manual: Botão 💾 Backup → Gerar Backup Agora
-Backups são salvos automaticamente no histórico
-Leitura Z:
-Clique em 📊 Leitura Z
-Selecione o período (data inicial e final)
-Clique em Gerar Relatório
-Imprima ou exporte o relatório
-Proteção por Senha:
-Ao tentar excluir cliente ou produto, o sistema pedirá a senha
-Digite java1814 (senha de administrador)
-Confirme a exclusão
-Cupom Fiscal:
-Após finalizar uma venda, o cupom é gerado automaticamente
-Clique em 🖨️ Imprimir para imprimir
-Para reimprimir: 🖨️ Reimprimir
-📱 Recursos Adicionais
-Recurso
-Descrição
-🎨 Interface Moderna
-Design limpo e responsivo
-⌨️ Atalhos de Teclado
-F2, F3, F4, ESC para agilidade
-📱 Responsivo
-Funciona em tablets e desktops
-💾 Dados Locais
-Tudo salvo no navegador
-🔔 Notificações
-Alertas visuais para ações
-🖨️ Pronto para Impressão
-Layouts otimizados
-⚠️ Importante
-Senha de Administrador: java1814 (para exclusões e sangria)
-Backup Local: Os dados ficam no navegador. Limpar dados = perda de informações
-Impressão: Use impressora térmica 80mm para cupons ou impressora comum para Leitura Z
-Configurações: Configure nome, CNPJ e endereço da empresa nas configurações
-🚀 Próximos Passos
-Quer adicionar mais funcionalidades?
-📧 Enviar cupom por WhatsApp/Email
-📊 Dashboard com gráficos de vendas
-🏷️ Código de barras nos produtos
-💳 Integração com pagamentos digitais (PIX)
-É só pedir! 😊
-Copiar
-Pergunte
-Explique
-Traduzir(pt-PT)
-ficou tudo maravilhoso, agradeç muito
+Sistema de vendas (PDV) simples e funcional para armarinhos/lojas pequenas, desenvolvido em **Python + Flask + SQLite**. Inspirado em necessidades reais de controle de vendas rápidas, com emissão de cupom, backups automáticos e proteção administrativa.
 
-Pensamento concluído
-Fico muito feliz que você gostou do sistema! 😊✨
-✅ Resumo do que entregamos:
-Funcionalidade
-Status
-🔐 Login com senha de administrador (java1814)
-✅ Completo
-👥 Cadastro de clientes CPF/CNPJ
-✅ Completo
-🛒 Vendas com carrinho e atalhos (F2, F3, F4)
-✅ Completo
-💰 Sangria de caixa com senha de administrador
-✅ Completo
-🗑️ Exclusão de clientes/produtos com senha
-✅ Protegido
-💾 Backup automático diário + manual
-✅ Ativado
-📊 Leitura Z (relatório fiscal do caixa)
-✅ Funcional
-📄 Cupom fiscal para impressão/reimpressão
-✅ Pronto para impressora
-🌐 Versão 100% estática para GitHub Pages
-✅ Deploy fácil
-💡 Dicas Rápidas para Uso Diário:
-Backup automático: Roda todo dia às 23:00 — seus dados estão seguros!
-Senha de administrador: java1814 (use para excluir clientes/produtos ou fazer sangria)
-Impressão de cupom: Após venda, clique em 🖨️ Imprimir ou use Ctrl+P
-Leitura Z: Use no final do dia para fechar o caixa e gerar relatório
-Emergência: Acesse seu sistema de qualquer lugar via GitHub Pages
-⚠️ Lembrete Importante:
-Como está no GitHub Pages, os dados ficam salvos apenas no navegador onde você usa o sistema. Para uso profissional contínuo com dados persistentes em nuvem:
-➡️ Recomendo migrar para Railway.app (gratuito) quando possível — assim seus dados nunca se perdem, mesmo trocando de dispositivo.
-🙌 Precisa de algo mais?
-Estou à disposição para:
-Ajustar layout ou cores
-Adicionar novas funcionalidades (PIX, WhatsApp, etc.)
-Criar versão para Railway.app com PostgreSQL
-Gerar manual de uso para sua equipe
-Muito obrigado pelo seu feedback! Foi um prazer desenvolver este sistema para você. 💙
-Boas vendas! 🛒✨
+![Screenshot do Dashboard](https://via.placeholder.com/800x400?text=Dashboard+Sistema+de+Vendas)  
+*(Adicione uma screenshot real aqui depois – tire print do dashboard logado como operador/admin)*
+
+## Funcionalidades Implementadas
+
+- **Login com níveis de acesso** (admin / operador)
+- **Dashboard diferenciado** por perfil:
+  - Admin: Configuração de APIs de pagamento, backups, relatórios
+  - Operador: Consulta de produtos, emissão de cupom, nova venda
+- **Backup automático e manual** (diário às 23:00, histórico, restauração, exportação JSON)
+- **Leitura Z** (relatório fiscal simplificado: totais do dia, sangrias, top 10 produtos, export PDF)
+- **Emissão de cupom fiscal/não fiscal** (layout otimizado para impressora térmica 80mm, reimpressão)
+- **Proteção administrativa** (senha para ações sensíveis como exclusão – padrão: *java1814*)
+- **Pesquisa de vendas** (por número de cupom, cliente ou horário – segunda via)
+- **Interface responsiva** com atalhos de teclado e notificações
+- **Configuração de API de pagamentos** (Mercado Pago PIX/cartão – em andamento)
+
+**Funcionalidades planejadas / em desenvolvimento**:
+- Integração PIX/Cartão (Mercado Pago, PagSeguro)
+- Envio automático de cupom via WhatsApp (Twilio ou API oficial)
+- Carrinho de vendas completo (adicionar/remover itens, selecionar cliente)
+- Geração de PDF profissional para cupom (com reportlab)
+- Cadastro de produtos e clientes
+- Gráficos no dashboard (vendas diárias/mensais)
+
+## Tecnologias Utilizadas
+
+- **Backend**: Python 3 + Flask + SQLAlchemy (SQLite)
+- **Frontend**: HTML5 + CSS3 + Jinja2 (templates)
+- **Outras bibliotecas**:
+  - reportlab (PDF)
+  - twilio (WhatsApp futuro)
+  - mercadopago (pagamentos)
+  - schedule (backups automáticos)
+
+Veja a lista completa em [`requirements.txt`](requirements.txt).
+
+## Como Instalar e Executar (Localmente)
+
+1. **Clone o repositório**
+   ```bash
+   git clone https://github.com/akilessimiao/versao-armarinho-v1.1.git
+   cd versao-armarinho-v1.1
+
+Crie e ative o ambiente virtual (recomendado)Bashpython -m venv venv
+# Windows:
+venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
+Instale as dependênciasBashpip install -r requirements.txt
+Execute o sistemaBashpython app.py
+Acesse no navegador: http://127.0.0.1:5000/
+
+Credenciais iniciais
+Admin: usuário admin / senha admin
+Operador: usuário operador / senha operador123
+Senha administrativa para ações sensíveis: java1814
+
+
+Atenção: O banco de dados é SQLite local (sistema_vendas.db). Faça backup antes de testes pesados!
+Como Usar (Principais Fluxos)
+
+Login → Escolha admin ou operador
+Operador → Consulta produtos + Iniciar nova venda/emissão de cupom
+Admin → Configurar API pagamentos + Backup + Pesquisar vendas
+Cupom → Após finalizar venda, gera cupom com nome da empresa (configurável)
+Backup → Automático diário ou manual via botão
+
+Para impressora térmica: configure o navegador para impressão sem margens/cabeçalho (layout 80mm).
+Contribuição
+Sinta-se à vontade para abrir issues ou pull requests! Ideias bem-vindas:
+
+Integração WhatsApp
+Suporte a múltiplos usuários
+Relatórios avançados
+Deploy em nuvem (Railway, Render, Heroku)
+
+Licença
+MIT License – Veja LICENSE (crie o arquivo se não existir).
+Desenvolvido por LDT NET – Natal/RN – 2026
+Qualquer dúvida: abra uma issue aqui no GitHub!
+text### Dicas para melhorar ainda mais
+
+- **Adicione imagens reais**:
+  - Tire prints do login, dashboard operador/admin, tela de cupom.
+  - Suba para o repositório (ex: crie pasta `docs/screenshots/`) e atualize os links no README (ex: `![Dashboard](docs/screenshots/dashboard.png)`).
+- **Crie um LICENSE**: No GitHub, clique em "Add file" → "Create new file" → nome `LICENSE` → escolha MIT.
+- **Atualize a descrição do repositório** (no GitHub, em "About"):  
+  "Sistema de vendas/PDV para armarinhos em Flask/Python – cupons, backups, leitura Z e mais."
+- **Adicione badges** (opcional, fica bonito):
+  ```markdown
+  [![Python](https://img.shields.io/badge/Python-3.10+-blue)](https://www.python.org/)
+  [![Flask](https://img.shields.io/badge/Flask-3.0-orange)](https://flask.pal   
